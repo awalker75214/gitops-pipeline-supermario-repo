@@ -1,0 +1,37 @@
+name: Run Container Scan on Super Mario Docker Image with Quality Gate
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  VERSION: ${{ github.run_number }}
+
+jobs:
+  run-container-image-scan-on-super-mario-docker-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Get Docker image from Docker Hub
+        run: |
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/super-mario-gitops-project:${{ env.VERSION }}
+          docker save -o ${{ github.workspace }}/super-mario-latest-docker-image.tar ${{ secrets.DOCKERHUB_USERNAME }}/super-mario-gitops-project:${{ env.VERSION }}
+
+      - name: Run Trivy vulnerability scanner in tarball mode
+        uses: aquasecurity/trivy-action@master
+        with:
+          input: ${{ github.workspace }}/super-mario-latest-docker-image.tar
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
