@@ -13,7 +13,7 @@ spec:
         app: supermariogame
     spec:
       containers:
-      - image: akeemthedream/supermariogitops_azure_aws_project:2
+      - image: akeemthedream/supermariogitops_azure_aws_project:1
         name: supermariogame-container
         ports:
         - containerPort: 8080
